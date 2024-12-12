@@ -15,7 +15,22 @@ allprojects {
         }
     }
 }
-
+buildscript {
+    ext.kotlin_version = '1.8.0' // 推奨: Kotlin 1.8.0 以上
+    repositories {
+    google() // Google のリポジトリ
+    mavenCentral() // Maven Central リポジトリ
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:8.3.0"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = "1.8" // または "11"。ターゲット JVM バージョンを設定
+    }
+}
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"

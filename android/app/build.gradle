@@ -7,7 +7,11 @@ plugins {
 
 android {
     namespace = "com.example.qr8"
-    compileSdk = flutter.compileSdkVersion
+    compileSdkVersion = 34
+    defaultConfig {
+        targetSdkVersion 34
+        minSdkVersion flutter.minSdkVersion
+    }
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -16,7 +20,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = "1.8"
     }
 
     defaultConfig {
@@ -36,6 +40,11 @@ android {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.debug
         }
+    }
+}
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 }
 
