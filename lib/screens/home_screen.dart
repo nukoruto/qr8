@@ -22,9 +22,11 @@ class HomeScreen extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
+            Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => FileListScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => FileListScreen(directoryUrl: "default_directory_url"),
+                  ),
                 );
               },
               child: Text('ファイル一覧を見る'),

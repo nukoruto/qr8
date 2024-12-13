@@ -1,35 +1,36 @@
 import 'package:flutter/material.dart';
-import '../utils/api_service.dart';
+import '../utils/file_handler.dart';
+import 'file_viewer.dart';
 
 class FileListScreen extends StatelessWidget {
-  final ApiService apiService = ApiService();
+  final String directoryUrl;
+
+  FileListScreen({required this.directoryUrl});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('ファイル一覧')),
-      body: FutureBuilder(
-        future: apiService.fetchFileList(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('エラーが発生しました'));
-          } else {
-            final List<String> files = snapshot.data as List<String>;
-            return ListView.builder(
-              itemCount: files.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(files[index]),
-                  onTap: () {
-                    // ファイル選択時の処理
-                  },
-                );
-              },
-            );
-          }
-        },
+      appBar: AppBar(title: const Text("ファイル一覧")),
+      body: Column(
+        children: [
+          ElevatedButton(
+            onPressed: () async {
+              await FileHandler.downloadAndOpenExcel(directoryUrl);
+            },
+            child: const Text("点検簿"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FileViewerScreen(fileUrl: "$directoryUrl/manual.pdf"),
+                ),
+              );
+            },
+            child: const Text("マニュアル"),
+          ),
+        ],
       ),
     );
   }

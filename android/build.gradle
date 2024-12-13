@@ -22,13 +22,13 @@ buildscript {
     mavenCentral() // Maven Central リポジトリ
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:8.3.0"
+        classpath "com.android.tools.build:gradle:8.1.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
     kotlinOptions {
-        jvmTarget = "1.8" // または "11"。ターゲット JVM バージョンを設定
+        jvmTarget = "17" 
     }
 }
 rootProject.buildDir = "../build"

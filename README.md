@@ -7,16 +7,16 @@
 - [android studio導入からvscodeでの開発まで](https://qiita.com/shimizu-m1127/items/d8dfc2179bc01baaef6b)
 (10. 「VSCode」に「Flutter」をインストールまで)
 
-### Android SDK 34 のインストール
+### Android SDK 34 のインストール(以下chatgpt)
 - Android Studio を開きます。
 - メニューから File > Settings > Appearance & Behavior > System Settings > Android SDK を選択します。
 - SDK Platforms タブで Android 34 をチェックしてインストールします。
 
-### java11のダウンロード
-jdk: 11.0.24([ここからwindows版ダウンロード(インストーラでもzipでも)](https://www.oracle.com/jp/java/technologies/javase/jdk11-archive-downloads.html))
+### java17のダウンロード
+jdk: 17.0.12([ここからwindows版ダウンロード(インストーラでもzipでも)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html))
 
-> [!warn]
-> ダウンロードしたjavaフォルダ(jdk-11.0.24)は、C:\Program Files\Java\jdk-11.0.24となるように置こう
+> [!note]
+> ダウンロードしたjavaフォルダ(jdk-17.0.12)は、C:\Program Files\Java\jdk-17.0.12となるように置こう
 
 ### いれる必要のある環境変数
 
@@ -26,8 +26,7 @@ jdk: 11.0.24([ここからwindows版ダウンロード(インストーラでもz
 |PATH|%ANDROID_HOME%\platforms|android関係のコマンドに必要|
 ||%ANDROID_HOME%\tools|android関係のコマンドに必要|
 ||%ANDROID_HOME%\platform-tools|android関係のコマンドに必要|
-||C:\Program Files\Java\jdk-11.0.24\bin|javaベースのため必要、別の場所に保存しているならそこに通す|
-||C:\Users\{ユーザー名}\AppData\Local\Pub\Cache\bin|デバッグ用|
+||C:\Users\{ユーザー名}\AppData\Local\Pub\Cache\bin|コマンドに必要|
 
 ### 導入すべきvscodeの拡張機能
 - Dart
@@ -66,7 +65,7 @@ chcp 65001
 
 ## 開発環境
   - node.js: 20.18.0
-  - jdk: 11.0.24([ここからwindows版ダウンロード(インストーラでもzipでも)](https://www.oracle.com/jp/java/technologies/javase/jdk11-archive-downloads.html))
+  - jdk: 17.0.12
   - sdk: API34(Android14:Upside Down Cake)
   - shared_preferences: ^2.1.0
   - http: ^0.13.5
