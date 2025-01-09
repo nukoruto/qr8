@@ -19,11 +19,12 @@ class QRScannerScreen extends StatefulWidget {
 
 class _QRScannerScreenState extends State<QRScannerScreen> {
   final ApiService _apiService = ApiService();
+  final MobileScannerController _scannerController = MobileScannerController();
+  bool _hasScanned = false;
 
   @override
   void initState() {
     super.initState();
-    // 初期化処理をここに追加できます
     checkAndRequestCameraPermission();
   }
 
@@ -34,11 +35,15 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         title: const Text('QRコードスキャナ'),
       ),
       body: MobileScanner(
+        controller: _scannerController,
         onDetect: (BarcodeCapture capture) {
-          final barcode = capture.barcodes.first; // 最初の検出結果を取得
-          if (barcode.rawValue != null) {
-            final directoryUrl = barcode.rawValue!;
-            _handleBarcodeScan(context, directoryUrl);
+          if (!_hasScanned) {
+            _hasScanned = true;
+            final barcode = capture.barcodes.first; // 最初の検出結果を取得
+            if (barcode.rawValue != null) {
+              final directoryUrl = barcode.rawValue!;
+              _handleBarcodeScan(context, directoryUrl);
+            }
           }
         },
       ),
@@ -53,11 +58,25 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         MaterialPageRoute(
           builder: (context) => FileListScreen(files: files, directoryUrl: directoryUrl),
         ),
-      );
+      ).then((_) {
+        // 戻ってきたときに再びスキャンを許可
+        setState(() {
+          _hasScanned = false;
+        });
+      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('エラー: $e')),
       );
+      setState(() {
+        _hasScanned = false;
+      });
     }
+  }
+
+  @override
+  void dispose() {
+    _scannerController.dispose();
+    super.dispose();
   }
 }
