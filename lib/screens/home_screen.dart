@@ -1,37 +1,22 @@
 import 'package:flutter/material.dart';
 import 'qr_scanner.dart';
-import 'file_list.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('点検アプリ')),
+      appBar: AppBar(
+        title: const Text('QRコードで管理'),
+      ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => QRScannerScreen()),
-                );
-              },
-              child: Text('QRコードをスキャン'),
-            ),
-            ElevatedButton(
-              onPressed: () {
+        child: ElevatedButton(
+          onPressed: () {
             Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => FileListScreen(directoryUrl: "default_directory_url"),
-                  ),
-                );
-              },
-              child: Text('ファイル一覧を見る'),
-            ),
-          ],
+              context,
+              MaterialPageRoute(builder: (context) => QRScannerScreen()),
+            );
+          },
+          child: const Text('QRコードを読み取る'),
         ),
       ),
     );

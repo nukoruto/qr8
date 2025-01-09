@@ -1,25 +1,31 @@
-import 'package:dio/dio.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ApiService {
-  final Dio _dio = Dio();
+  final String baseUrl = "http://10.20.10.224:3002"; // 固定IPアドレス
 
-  Future<List<String>> fetchFileList() async {
-    final response = await _dio.get('http://<server-ip>:3002/files');
-    if (response.statusCode == 200) {
-      return List<String>.from(response.data);
-    } else {
-      throw Exception('ファイル一覧の取得に失敗しました');
+Future<List<String>> fetchFiles(String dir) async {
+  final response = await http.get(
+    Uri.parse('http://10.20.10.224:3002/files?dir=$dir'),
+  );
+
+  if (response.statusCode == 200) {
+    final List<dynamic> files = jsonDecode(response.body);
+    return files.cast<String>();
+  } else {
+    throw Exception('Failed to load files');
+  }
+}
+
+
+  Future<void> uploadFile(String filePath, String uploadDirectory) async {
+    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/upload'));
+    request.fields['directory'] = uploadDirectory;
+    request.files.add(await http.MultipartFile.fromPath('file', filePath));
+
+    var response = await request.send();
+    if (response.statusCode != 200) {
+      throw Exception('Failed to upload file');
     }
-  }
-  
-  Future<void> downloadFile(String url, String savePath) async {
-    await _dio.download(url, savePath);
-  }
-
-  Future<void> uploadFile(String url, String filePath) async {
-    final formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(filePath),
-    });
-    await _dio.post(url, data: formData);
   }
 }

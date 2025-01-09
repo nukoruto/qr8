@@ -3,9 +3,14 @@ import '../utils/file_handler.dart';
 import 'file_viewer.dart';
 
 class FileListScreen extends StatelessWidget {
+  final List<String> files;
   final String directoryUrl;
 
-  FileListScreen({required this.directoryUrl});
+  const FileListScreen({
+    Key? key,
+    required this.files,
+    required this.directoryUrl,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

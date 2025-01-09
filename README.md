@@ -22,11 +22,11 @@ jdk: 17.0.12([ここからwindows版ダウンロード(インストーラでもz
 
 |変数|値|必要性|
 |---|---|---|
-|ANDROID_HOME|android studio導入時のパス<br>(インストールパスとかいじってないなら)<br>C:\Users\{ユーザー名}\AppData\Local\Android\Sdk|何回もいれるのだるいから変数化|
+|ANDROID_HOME|android studio導入時のパス<br>(インストールパスとかいじってないなら)<br>C:\Users\\{ユーザー名}\AppData\Local\Android\Sdk|何回もいれるのだるいから変数化|
 |PATH|%ANDROID_HOME%\platforms|android関係のコマンドに必要|
 ||%ANDROID_HOME%\tools|android関係のコマンドに必要|
 ||%ANDROID_HOME%\platform-tools|android関係のコマンドに必要|
-||C:\Users\{ユーザー名}\AppData\Local\Pub\Cache\bin|コマンドに必要|
+||C:\Users\\{ユーザー名}\AppData\Local\Pub\Cache\bin|コマンドに必要|
 
 ### 導入すべきvscodeの拡張機能
 - Dart
