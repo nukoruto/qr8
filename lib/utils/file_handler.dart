@@ -6,7 +6,7 @@ class FileHandler {
   // .xlsx ファイルをダウンロードして開く処理
   static Future<void> downloadAndOpenExcel(String folderName) async {
     final today = DateFormat('yyyyMMdd').format(DateTime.now());
-    final String listFilesUrl = "http://192.168.3.12:3002/files?dir=/$folderName";
+    final String listFilesUrl = "http://10.20.10.224:3002/files?dir=/$folderName";
     final String localPathBase = "/storage/emulated/0/Download/";
 
     final Dio dio = Dio();
@@ -30,7 +30,7 @@ class FileHandler {
         }
 
         final String downloadUrl =
-            "http://192.168.3.12:3002/files?dir=/$folderName/$excelFileName";
+            "http://10.20.10.224:3002/files?dir=/$folderName/$excelFileName";
         final String localPath =
             "$localPathBase${excelFileName.split('.').first}_$today.xlsx";
 
@@ -60,7 +60,7 @@ class FileHandler {
     final today = DateFormat('yyyyMMdd').format(DateTime.now());
     final String parentFolder = folderName.split('/').first; // 親フォルダ名を取得
     final String uploadUrl =
-        "http://192.168.3.12:3002/files?dir=/$parentFolder/daily/$today";
+        "http://10.20.10.224:3002/files?dir=/$parentFolder/daily/$today";
 
     final Uri parsedUri = Uri.tryParse(uploadUrl) ??
         (throw ArgumentError('Invalid URL: $uploadUrl'));
@@ -70,7 +70,7 @@ class FileHandler {
     try {
       // サーバー側でフォルダ作成を確認または新規作成
       await dio.post(
-        "http://192.168.3.12:3002/create-folder",
+        "http://10.20.10.224:3002/create-folder",
         data: {'path': "/$parentFolder/daily/$today"},
       );
 
