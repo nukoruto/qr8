@@ -1,39 +1,50 @@
 import 'package:flutter/material.dart';
-import '../utils/file_handler.dart';
-import 'file_viewer.dart';
+import 'package:qr8/utils/file_handler.dart';
+import 'package:qr8/screens/file_viewer.dart';
 
 class FileListScreen extends StatelessWidget {
-  final List<String> files;
-  final String directoryUrl;
+  final String folderName;
 
-  const FileListScreen({
-    Key? key,
-    required this.files,
-    required this.directoryUrl,
-  }) : super(key: key);
+  FileListScreen({required this.folderName});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("ファイル一覧")),
+      appBar: AppBar(title: const Text("ファイルリスト")),
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ElevatedButton(
             onPressed: () async {
-              await FileHandler.downloadAndOpenExcel(directoryUrl);
+              try {
+                await FileHandler.downloadAndOpenFile(folderName, '.xlsx');
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('エラー: $e')),
+                );
+              }
             },
-            child: const Text("点検簿"),
+            child: const Text("点検簿をダウンロード"),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => FileViewerScreen(fileUrl: "$directoryUrl/manual.pdf"),
-                ),
-              );
+            onPressed: () async {
+              try {
+                final pdfPath = await FileHandler.downloadAndOpenFile(folderName, '.pdf');
+                if (pdfPath is String) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FileViewerScreen(fileUrl: pdfPath),
+                    ),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('エラー: $e')),
+                );
+              }
             },
-            child: const Text("マニュアル"),
+            child: const Text("マニュアルを開く"),
           ),
         ],
       ),
