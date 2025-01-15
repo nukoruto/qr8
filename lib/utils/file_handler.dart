@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
 
 class FileHandler {
   static Future<dynamic> downloadAndOpenFile(String folderName, String fileType) async {
@@ -33,19 +35,25 @@ class FileHandler {
       // ファイルをダウンロード
       await dio.download(downloadUrl, localPath);
 
+      final Uri fileUri = Uri.file(localPath);
+      print('Attempting to open file at: $localPath');
       if (fileType == '.xlsx') {
         // エクセルファイルの場合はアプリで開く
-        await Process.run('am', [
-          'start',
-          '-a',
-          'android.intent.action.VIEW',
-          '-d',
-          'file://$localPath',
-          '-t',
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ]);
-        return;
-      } else if (fileType == '.pdf') {
+Future<void> openFileWithIntent(String filePath) async {
+  try {
+    final intent = AndroidIntent(
+      action: 'action_view',
+      data: Uri.file(filePath).toString(),
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+    );
+    await intent.launch();
+  } catch (e) {
+    print('Error launching intent: $e');
+  }
+}
+}
+      else if (fileType == '.pdf') {
         // PDFファイルの場合はパスを返す
         return localPath;
       }
