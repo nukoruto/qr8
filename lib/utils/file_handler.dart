@@ -1,13 +1,12 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
-import 'package:android_intent_plus/android_intent.dart';
-import 'package:android_intent_plus/flag.dart';
+import 'package:open_filex/open_filex.dart';
 
 class FileHandler {
   static Future<dynamic> downloadAndOpenFile(String folderName, String fileType) async {
     final today = DateFormat('yyyyMMdd').format(DateTime.now());
-    final String listFilesUrl = "http://10.20.10.224:3002/files?dir=/$folderName";
+    final String listFilesUrl = "http://192.168.3.12:3002/files?dir=/$folderName";
     final String localPathBase = "/storage/emulated/0/Download/";
 
     final Dio dio = Dio();
@@ -29,7 +28,7 @@ class FileHandler {
         throw Exception('No $fileType file found in the specified folder.');
       }
 
-      final String downloadUrl = "http://10.20.10.224:3002/file?filePath=$folderName/$targetFile";
+      final String downloadUrl = "http://192.168.3.12:3002/file?filePath=$folderName/$targetFile";
       final String localPath = "$localPathBase${targetFile.split('.').first}_$today$fileType";
 
       // ファイルをダウンロード
@@ -39,19 +38,11 @@ class FileHandler {
       print('Attempting to open file at: $localPath');
       if (fileType == '.xlsx') {
         // エクセルファイルの場合はアプリで開く
-Future<void> openFileWithIntent(String filePath) async {
-  try {
-    final intent = AndroidIntent(
-      action: 'action_view',
-      data: Uri.file(filePath).toString(),
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
-    );
-    await intent.launch();
-  } catch (e) {
-    print('Error launching intent: $e');
-  }
-}
+
+      final result = await OpenFilex.open(localPath);
+            if (result.type != ResultType.done) {
+        throw Exception('Failed to open the file: $localPath');
+      }
 }
       else if (fileType == '.pdf') {
         // PDFファイルの場合はパスを返す
