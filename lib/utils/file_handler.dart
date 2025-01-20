@@ -19,34 +19,39 @@ class FileHandler {
     if (response.statusCode == 200) {
       List<dynamic> files = response.data;
 
-      // 指定されたファイルタイプを検索
-      String? targetFile = files.firstWhere(
-          (file) => file.toString().endsWith(fileType),
-          orElse: () => null);
+  // .xlsx と .pdf ファイルを検索
+       // 指定された拡張子のファイルをすべて取得
+      List<String> targetFiles = files
+          .where((file) => file.toString().endsWith(fileType))
+          .cast<String>()
+          .toList();
 
-      if (targetFile == null) {
+      if (targetFiles.isEmpty) {
         throw Exception('No $fileType file found in the specified folder.');
       }
 
+      // 最初の対象ファイルを選択
+      final String targetFile = targetFiles.first;
       final String downloadUrl = "http://192.168.3.12:3002/file?filePath=$folderName/$targetFile";
-      final String localPath = "$localPathBase${targetFile.split('.').first}_$today$fileType";
 
-      // ファイルをダウンロード
-      await dio.download(downloadUrl, localPath);
-
-      final Uri fileUri = Uri.file(localPath);
-      print('Attempting to open file at: $localPath');
       if (fileType == '.xlsx') {
-        // エクセルファイルの場合はアプリで開く
-
-      final result = await OpenFilex.open(localPath);
-            if (result.type != ResultType.done) {
-        throw Exception('Failed to open the file: $localPath');
-      }
-}
-      else if (fileType == '.pdf') {
-        // PDFファイルの場合はパスを返す
-        return localPath;
+        // エクセルファイルの場合はリネームして保存
+        final String localPath = "$localPathBase${targetFile.split('.').first}_$today$fileType";
+        await dio.download(downloadUrl, localPath);
+        final result = await OpenFilex.open(localPath);
+        print('Attempting to open file at: $localPath');
+        if (result.type != ResultType.done) {
+          throw Exception('Failed to open the file: $localPath');
+        }
+      } else if (fileType == '.pdf') {
+        // PDFファイルの場合はリネームせずそのまま保存
+        final String localPath = "$localPathBase$targetFile";
+        await dio.download(downloadUrl, localPath);
+        final result = await OpenFilex.open(localPath);
+        print('Attempting to open file at: $localPath');
+        if (result.type != ResultType.done) {
+          throw Exception('Failed to open the file: $localPath');
+        }
       }
     } else {
       throw Exception('Failed to load files from server.');

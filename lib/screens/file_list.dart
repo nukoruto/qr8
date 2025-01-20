@@ -29,15 +29,7 @@ class FileListScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () async {
               try {
-                final pdfPath = await FileHandler.downloadAndOpenFile(folderName, '.pdf');
-                if (pdfPath is String) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FileViewerScreen(fileUrl: pdfPath),
-                    ),
-                  );
-                }
+                await FileHandler.downloadAndOpenFile(folderName, '.pdf');
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('エラー: $e')),
