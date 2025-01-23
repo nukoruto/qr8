@@ -15,7 +15,7 @@ class FileUploadScreen extends StatelessWidget {
             final result = await FilePicker.platform.pickFiles();
             if (result != null) {
               final filePath = result.files.single.path!;
-              await apiService.uploadFile('http://192.168.3.12:3002/upload', filePath);
+              await apiService.uploadFile('http://10.20.10.224:3002/upload', filePath);
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text('アップロードが完了しました'),
               ));

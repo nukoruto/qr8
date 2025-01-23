@@ -1,14 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:qr8/utils/file_handler.dart';
-import 'package:qr8/screens/file_viewer.dart';
 
-class FileListScreen extends StatelessWidget {
+class FileListScreen extends StatefulWidget {
   final String folderName;
 
-  FileListScreen({required this.folderName});
+  const FileListScreen({Key? key, required this.folderName}) : super(key: key);
+
+  @override
+  _FileListScreenState createState() => _FileListScreenState();
+}
+
+class _FileListScreenState extends State<FileListScreen> {
+  String? excelFileName; // エクセルファイルの名前を保持する変数
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchExcelFileName();
+  }
+
+  // サーバーからエクセルファイルの名前を取得して保持
+  Future<void> _fetchExcelFileName() async {
+    try {
+      final fileName = await FileHandler.fetchFileName(widget.folderName, '.xlsx');
+      setState(() {
+        excelFileName = fileName;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('エクセルファイル名の取得に失敗しました: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final today = DateFormat('yyyyMMdd').format(DateTime.now());
+
     return Scaffold(
       appBar: AppBar(title: const Text("ファイルリスト")),
       body: Column(
@@ -16,8 +45,21 @@ class FileListScreen extends StatelessWidget {
         children: [
           ElevatedButton(
             onPressed: () async {
+              if (excelFileName == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('エクセルファイルが見つかりません')),
+                );
+                return;
+              }
+
+              final renamedFileName = excelFileName!.replaceAll('.xlsx', '_$today.xlsx');
+
               try {
-                await FileHandler.downloadAndOpenFile(folderName, '.xlsx');
+                await FileHandler.downloadAndOpenFile(
+                  widget.folderName,
+                  '.xlsx',
+                  renamedFileName: renamedFileName,
+                );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('エラー: $e')),
@@ -28,8 +70,33 @@ class FileListScreen extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
+              if (excelFileName == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('アップロードするファイルがありません')),
+                );
+                return;
+              }
+
+              final renamedFileName = excelFileName!.replaceAll('.xlsx', '_$today.xlsx');
+              final localPath = '/storage/emulated/0/Download/$renamedFileName';
+
               try {
-                await FileHandler.downloadAndOpenFile(folderName, '.pdf');
+                await FileHandler.uploadFile(localPath, widget.folderName);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('アップロードが完了しました')),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('アップロードに失敗しました: $e')),
+                );
+              }
+            },
+            child: const Text("点検簿を送信"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await FileHandler.downloadAndOpenFile(widget.folderName, '.pdf');
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('エラー: $e')),
