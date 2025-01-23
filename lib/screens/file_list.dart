@@ -1,39 +1,109 @@
 import 'package:flutter/material.dart';
-import '../utils/file_handler.dart';
-import 'file_viewer.dart';
+import 'package:intl/intl.dart';
+import 'package:qr8/utils/file_handler.dart';
 
-class FileListScreen extends StatelessWidget {
-  final List<String> files;
-  final String directoryUrl;
+class FileListScreen extends StatefulWidget {
+  final String folderName;
 
-  const FileListScreen({
-    Key? key,
-    required this.files,
-    required this.directoryUrl,
-  }) : super(key: key);
+  const FileListScreen({Key? key, required this.folderName}) : super(key: key);
+
+  @override
+  _FileListScreenState createState() => _FileListScreenState();
+}
+
+class _FileListScreenState extends State<FileListScreen> {
+  String? excelFileName; // エクセルファイルの名前を保持する変数
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchExcelFileName();
+  }
+
+  // サーバーからエクセルファイルの名前を取得して保持
+  Future<void> _fetchExcelFileName() async {
+    try {
+      final fileName = await FileHandler.fetchFileName(widget.folderName, '.xlsx');
+      setState(() {
+        excelFileName = fileName;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('エクセルファイル名の取得に失敗しました: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final today = DateFormat('yyyyMMdd').format(DateTime.now());
+
     return Scaffold(
-      appBar: AppBar(title: const Text("ファイル一覧")),
+      appBar: AppBar(title: const Text("ファイルリスト")),
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ElevatedButton(
             onPressed: () async {
-              await FileHandler.downloadAndOpenExcel(directoryUrl);
+              if (excelFileName == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('エクセルファイルが見つかりません')),
+                );
+                return;
+              }
+
+              final renamedFileName = excelFileName!.replaceAll('.xlsx', '_$today.xlsx');
+
+              try {
+                await FileHandler.downloadAndOpenFile(
+                  widget.folderName,
+                  '.xlsx',
+                  renamedFileName: renamedFileName,
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('エラー: $e')),
+                );
+              }
             },
-            child: const Text("点検簿"),
+            child: const Text("点検簿をダウンロード"),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => FileViewerScreen(fileUrl: "$directoryUrl/manual.pdf"),
-                ),
-              );
+            onPressed: () async {
+              if (excelFileName == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('アップロードするファイルがありません')),
+                );
+                return;
+              }
+
+              final renamedFileName = excelFileName!.replaceAll('.xlsx', '_$today.xlsx');
+              final localPath = '/storage/emulated/0/Download/$renamedFileName';
+
+              try {
+                await FileHandler.uploadFile(localPath, widget.folderName);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('アップロードが完了しました')),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('アップロードに失敗しました: $e')),
+                );
+              }
             },
-            child: const Text("マニュアル"),
+            child: const Text("点検簿を送信"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await FileHandler.downloadAndOpenFile(widget.folderName, '.pdf');
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('エラー: $e')),
+                );
+              }
+            },
+            child: const Text("マニュアルを開く"),
           ),
         ],
       ),

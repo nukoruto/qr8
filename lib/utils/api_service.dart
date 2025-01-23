@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = "http://192.168.3.12:3002"; // 固定IPアドレス
+  final String baseUrl = "http://10.20.10.224:3002"; // 固定IPアドレス
 
 Future<List<String>> fetchFiles(String dir) async {
   final response = await http.get(
-    Uri.parse('http://192.168.3.12:3002/files?dir=$dir'),
+    Uri.parse('http://10.20.10.224:3002/files?dir=$dir'),
   );
 
   if (response.statusCode == 200) {

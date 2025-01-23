@@ -1,93 +1,75 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
+import 'package:open_filex/open_filex.dart';
 
 class FileHandler {
-  // .xlsx ファイルをダウンロードして開く処理
-  static Future<void> downloadAndOpenExcel(String folderName) async {
-    final today = DateFormat('yyyyMMdd').format(DateTime.now());
-    final String listFilesUrl = "http://192.168.3.12:3002/files?dir=/$folderName";
-    final String localPathBase = "/storage/emulated/0/Download/";
-
+  // サーバーから指定されたフォルダ内の指定拡張子のファイル名を取得
+  static Future<String?> fetchFileName(String folderName, String extension) async {
+    final String listFilesUrl = "http://10.20.10.224:3002/files?dir=/$folderName";
     final Dio dio = Dio();
     final Uri parsedUri = Uri.tryParse(listFilesUrl) ??
         (throw ArgumentError('Invalid URL: $listFilesUrl'));
 
-    try {
-      // サーバーからフォルダ内のファイルリストを取得
-      final response = await dio.get(parsedUri.toString());
+    final response = await dio.get(parsedUri.toString());
 
-      if (response.statusCode == 200) {
-        List<dynamic> files = response.data;
-
-        // .xlsx ファイルを検索
-        String? excelFileName = files.firstWhere(
-            (file) => file.toString().endsWith('.xlsx'),
-            orElse: () => null);
-
-        if (excelFileName == null) {
-          throw Exception('No .xlsx file found in the specified folder.');
-        }
-
-        final String downloadUrl =
-            "http://192.168.3.12:3002/files?dir=/$folderName/$excelFileName";
-        final String localPath =
-            "$localPathBase${excelFileName.split('.').first}_$today.xlsx";
-
-        // .xlsx ファイルをダウンロード
-        await dio.download(downloadUrl, localPath);
-
-        // エクセルアプリで開く
-        await Process.run('am', [
-          'start',
-          '-a',
-          'android.intent.action.VIEW',
-          '-d',
-          'file://$localPath',
-          '-t',
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ]);
-      } else {
-        throw Exception('Failed to load files from server.');
-      }
-    } catch (e) {
-      throw Exception('Error during download and open Excel: $e');
+    if (response.statusCode == 200) {
+      List<dynamic> files = response.data;
+      String? fileName = files.firstWhere(
+          (file) => file.toString().endsWith(extension),
+          orElse: () => null);
+      return fileName;
+    } else {
+      throw Exception('Failed to fetch files from server.');
     }
   }
 
-  // ファイルをサーバーにアップロードする処理
-  static Future<void> uploadFile(String localFilePath, String folderName) async {
-    final today = DateFormat('yyyyMMdd').format(DateTime.now());
-    final String parentFolder = folderName.split('/').first; // 親フォルダ名を取得
-    final String uploadUrl =
-        "http://192.168.3.12:3002/files?dir=/$parentFolder/daily/$today";
+  // 指定したフォルダのファイルをダウンロードし、必要に応じてリネーム
+  static Future<void> downloadAndOpenFile(String folderName, String extension,
+      {String? renamedFileName}) async {
+    final String? fileName = await fetchFileName(folderName, extension);
+    if (fileName == null) {
+      throw Exception('No $extension file found in the specified folder.');
+    }
 
+    final today = DateFormat('yyyyMMdd').format(DateTime.now());
+    final String downloadUrl =
+        "http://10.20.10.224:3002/file?filePath=$folderName/$fileName";
+    final String localPath = "/storage/emulated/0/Download/" +
+        (renamedFileName ?? "${fileName.split('.').first}_$today.$extension");
+
+    final Dio dio = Dio();
+    await dio.download(downloadUrl, localPath);
+
+    // ファイルをデフォルトアプリで開く (open_filex パッケージを使用)
+    final result = await OpenFilex.open(localPath);
+    if (result.type != ResultType.done) {
+      throw Exception('Failed to open file: ${result.message}');
+    }
+  }
+
+  // 指定したローカルパスのファイルをサーバーにアップロード
+  static Future<void> uploadFile(String localFilePath, String parentFolder) async {
+    final String today = DateFormat('yyyyMMdd').format(DateTime.now());
+    final String uploadUrl = "http://10.20.10.224:3002/upload";
+
+    // daily フォルダとその中の日付フォルダを生成
+    final String dailyFolderPath = "/$parentFolder/daily/$today";
     final Uri parsedUri = Uri.tryParse(uploadUrl) ??
         (throw ArgumentError('Invalid URL: $uploadUrl'));
 
     final Dio dio = Dio();
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(localFilePath),
+      'targetDir': dailyFolderPath, // アップロード先ディレクトリをサーバーに指定
+    });
 
-    try {
-      // サーバー側でフォルダ作成を確認または新規作成
-      await dio.post(
-        "http://192.168.3.12:3002/create-folder",
-        data: {'path': "/$parentFolder/daily/$today"},
-      );
+    await dio.post(parsedUri.toString(), data: formData);
 
-      // ファイルアップロード
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(localFilePath),
-      });
-
-      await dio.post(parsedUri.toString(), data: formData);
-
-      // ローカルファイルを削除
-      final file = File(localFilePath);
-      if (await file.exists()) {
-        await file.delete();
-      }
-    } catch (e) {
-      throw Exception('Error during file upload: $e');
+    // ローカルファイルを削除
+    final file = File(localFilePath);
+    if (await file.exists()) {
+      await file.delete();
     }
   }
 }

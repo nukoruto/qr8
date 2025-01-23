@@ -21,6 +21,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   final ApiService _apiService = ApiService();
   final MobileScannerController _scannerController = MobileScannerController();
   bool _hasScanned = false;
+  late String qrData; // qrDataを宣言
 
   @override
   void initState() {
@@ -41,8 +42,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             _hasScanned = true;
             final barcode = capture.barcodes.first; // 最初の検出結果を取得
             if (barcode.rawValue != null) {
-              final directoryUrl = barcode.rawValue!;
-              _handleBarcodeScan(context, directoryUrl);
+              qrData = barcode.rawValue!; // qrDataに値を代入
+              _handleBarcodeScan(context, qrData);
             }
           }
         },
@@ -56,7 +57,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => FileListScreen(files: files, directoryUrl: directoryUrl),
+          builder: (context) => FileListScreen(folderName: qrData), // qrDataを使用
         ),
       ).then((_) {
         // 戻ってきたときに再びスキャンを許可
