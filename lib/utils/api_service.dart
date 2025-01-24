@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:dio/dio.dart';
 
 class ApiService {
   final String baseUrl = "http://10.20.10.224:3002"; // 固定IPアドレス
@@ -26,6 +28,26 @@ Future<List<String>> fetchFiles(String dir) async {
     var response = await request.send();
     if (response.statusCode != 200) {
       throw Exception('Failed to upload file');
+    }
+  }
+  static Future<void> uploadImageToServer(String filePath) async {
+    final String uploadUrl = "http://10.20.10.224:3002/upload-image";
+    final dio = Dio();
+
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath),
+      });
+
+      final response = await dio.post(uploadUrl, data: formData);
+
+      if (response.statusCode == 200) {
+        print('画像がサーバーに正常にアップロードされました');
+      } else {
+        print('画像のアップロードに失敗しました: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('エラーが発生しました: $e');
     }
   }
 }
