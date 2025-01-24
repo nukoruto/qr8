@@ -1,0 +1,5 @@
+{
+    "cmake.configureOnOpen": true,
+    "cmake.generator": "Ninja",
+    "cmake.sourceDirectory": "C:/Users/df360/Desktop/anddev/qr8/linux"
+}
