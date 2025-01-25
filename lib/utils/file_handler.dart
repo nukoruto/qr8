@@ -6,7 +6,7 @@ import 'package:open_filex/open_filex.dart';
 class FileHandler {
   // サーバーから指定されたフォルダ内の指定拡張子のファイル名を取得
   static Future<String?> fetchFileName(String folderName, String extension) async {
-    final String listFilesUrl = "http://10.20.10.224:3002/files?dir=/$folderName";
+    final String listFilesUrl = "http://192.168.3.13:3002/files?dir=/$folderName";
     final Dio dio = Dio();
     final Uri parsedUri = Uri.tryParse(listFilesUrl) ??
         (throw ArgumentError('Invalid URL: $listFilesUrl'));
@@ -34,7 +34,7 @@ class FileHandler {
 
     final today = DateFormat('yyyyMMdd').format(DateTime.now());
     final String downloadUrl =
-        "http://10.20.10.224:3002/file?filePath=$folderName/$fileName";
+        "http://192.168.3.13:3002/file?filePath=$folderName/$fileName";
     final String localPath = "/storage/emulated/0/Download/" +
         (renamedFileName ?? "${fileName.split('.').first}_$today.$extension");
 
@@ -51,7 +51,7 @@ class FileHandler {
   // 指定したローカルパスのファイルをサーバーにアップロード
   static Future<void> uploadFile(String localFilePath, String parentFolder) async {
     final String today = DateFormat('yyyyMMdd').format(DateTime.now());
-    final String uploadUrl = "http://10.20.10.224:3002/upload";
+    final String uploadUrl = "http://192.168.3.13:3002/upload";
 
     // daily フォルダとその中の日付フォルダを生成
     final String dailyFolderPath = "/$parentFolder/daily/$today";
