@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:qr8/utils/file_handler.dart';
@@ -12,7 +13,7 @@ class FileListScreen extends StatefulWidget {
 }
 
 class _FileListScreenState extends State<FileListScreen> {
-  String? excelFileName; // エクセルファイルの名前を保持する変数
+  String? excelFileName;
 
   @override
   void initState() {
@@ -20,7 +21,6 @@ class _FileListScreenState extends State<FileListScreen> {
     _fetchExcelFileName();
   }
 
-  // サーバーからエクセルファイルの名前を取得して保持
   Future<void> _fetchExcelFileName() async {
     try {
       final fileName = await FileHandler.fetchFileName(widget.folderName, '.xlsx');
@@ -53,7 +53,6 @@ class _FileListScreenState extends State<FileListScreen> {
               }
 
               final renamedFileName = excelFileName!.replaceAll('.xlsx', '_$today.xlsx');
-
               try {
                 await FileHandler.downloadAndOpenFile(
                   widget.folderName,
@@ -78,7 +77,8 @@ class _FileListScreenState extends State<FileListScreen> {
               }
 
               final renamedFileName = excelFileName!.replaceAll('.xlsx', '_$today.xlsx');
-              final localPath = '/storage/emulated/0/Download/$renamedFileName';
+              final Directory appDir = await FileHandler.getAppDirectory();
+              final localPath = "${appDir.path}/$renamedFileName";
 
               try {
                 await FileHandler.uploadFile(localPath, widget.folderName);

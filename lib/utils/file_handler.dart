@@ -2,8 +2,14 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
 class FileHandler {
+  static Future<Directory> getAppDirectory() async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory;
+  }
+
   // サーバーから指定されたフォルダ内の指定拡張子のファイル名を取得
   static Future<String?> fetchFileName(String folderName, String extension) async {
     final String listFilesUrl = "http://192.168.3.13:3002/files?dir=/$folderName";
@@ -35,13 +41,14 @@ class FileHandler {
     final today = DateFormat('yyyyMMdd').format(DateTime.now());
     final String downloadUrl =
         "http://192.168.3.13:3002/file?filePath=$folderName/$fileName";
-    final String localPath = "/storage/emulated/0/Download/" +
+    final Directory appDir = await getAppDirectory();
+    final String localPath = "${appDir.path}/" +
         (renamedFileName ?? "${fileName.split('.').first}_$today.$extension");
 
     final Dio dio = Dio();
     await dio.download(downloadUrl, localPath);
 
-    // ファイルをデフォルトアプリで開く (open_filex パッケージを使用)
+    // ファイルをデフォルトアプリで開く
     final result = await OpenFilex.open(localPath);
     if (result.type != ResultType.done) {
       throw Exception('Failed to open file: ${result.message}');
@@ -53,7 +60,6 @@ class FileHandler {
     final String today = DateFormat('yyyyMMdd').format(DateTime.now());
     final String uploadUrl = "http://192.168.3.13:3002/upload";
 
-    // daily フォルダとその中の日付フォルダを生成
     final String dailyFolderPath = "/$parentFolder/daily/$today";
     final Uri parsedUri = Uri.tryParse(uploadUrl) ??
         (throw ArgumentError('Invalid URL: $uploadUrl'));
@@ -61,7 +67,7 @@ class FileHandler {
     final Dio dio = Dio();
     final formData = FormData.fromMap({
       'file': await MultipartFile.fromFile(localFilePath),
-      'targetDir': dailyFolderPath, // アップロード先ディレクトリをサーバーに指定
+      'targetDir': dailyFolderPath,
     });
 
     await dio.post(parsedUri.toString(), data: formData);
