@@ -77,8 +77,8 @@ class _FileListScreenState extends State<FileListScreen> {
               }
 
               final renamedFileName = excelFileName!.replaceAll('.xlsx', '_$today.xlsx');
-              final Directory appDir = await FileHandler.getAppDirectory();
-              final localPath = "${appDir.path}/$renamedFileName";
+              final localPath = '/storage/emulated/0/Download/$renamedFileName';
+
 
               try {
                 await FileHandler.uploadFile(localPath, widget.folderName);
