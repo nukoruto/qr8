@@ -8,7 +8,7 @@
     <!-- For scoped storage access -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <application
-        android:label="qr8"
+        android:label="qrで管理"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true">
