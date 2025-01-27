@@ -4,11 +4,11 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 
 class ApiService {
-  final String baseUrl = "http://10.20.10.224:3002"; // 固定IPアドレス
+  final String baseUrl = "http://192.168.3.13:3002"; // 固定IPアドレス
 
 Future<List<String>> fetchFiles(String dir) async {
   final response = await http.get(
-    Uri.parse('http://10.20.10.224:3002/files?dir=$dir'),
+    Uri.parse('http://192.168.3.13:3002/files?dir=$dir'),
   );
 
   if (response.statusCode == 200) {
@@ -31,7 +31,7 @@ Future<List<String>> fetchFiles(String dir) async {
     }
   }
   static Future<void> uploadImageToServer(String filePath) async {
-    final String uploadUrl = "http://10.20.10.224:3002/upload-image";
+    final String uploadUrl = "http://192.168.3.13:3002/upload-image";
     final dio = Dio();
 
     try {
