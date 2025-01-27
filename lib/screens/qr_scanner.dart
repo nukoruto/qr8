@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../utils/api_service.dart';
-import '../utils/file_handler.dart';
 import 'file_list.dart';
 import 'package:permission_handler/permission_handler.dart';
 

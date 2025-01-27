@@ -12,7 +12,7 @@ class FileHandler {
 
   // サーバーから指定されたフォルダ内の指定拡張子のファイル名を取得
   static Future<String?> fetchFileName(String folderName, String extension) async {
-    final String listFilesUrl = "http://192.168.3.13:3002/files?dir=/$folderName";
+    final String listFilesUrl = "http://10.20.10.224:3002/files?dir=/$folderName";
     final Dio dio = Dio();
     final Uri parsedUri = Uri.tryParse(listFilesUrl) ??
         (throw ArgumentError('Invalid URL: $listFilesUrl'));
@@ -40,7 +40,7 @@ class FileHandler {
 
     final today = DateFormat('yyyyMMdd').format(DateTime.now());
     final String downloadUrl =
-        "http://192.168.3.13:3002/file?filePath=$folderName/$fileName";
+        "http://10.20.10.224:3002/file?filePath=$folderName/$fileName";
     final Directory appDir = await getAppDirectory();
     final String localPath = "${appDir.path}/" +
         (renamedFileName ?? "${fileName.split('.').first}_$today.$extension");
@@ -58,7 +58,7 @@ class FileHandler {
   // 指定したローカルパスのファイルをサーバーにアップロード
   static Future<void> uploadFile(String localFilePath, String parentFolder) async {
     final String today = DateFormat('yyyyMMdd').format(DateTime.now());
-    final String uploadUrl = "http://192.168.3.13:3002/upload";
+    final String uploadUrl = "http://10.20.10.224:3002/upload";
 
     final String dailyFolderPath = "/$parentFolder/daily/$today";
     final Uri parsedUri = Uri.tryParse(uploadUrl) ??
@@ -70,12 +70,18 @@ class FileHandler {
       'targetDir': dailyFolderPath,
     });
 
-    await dio.post(parsedUri.toString(), data: formData);
+try {
+    await dio.post(uploadUrl, data: formData);
 
-    // ローカルファイルを削除
+    // アップロード成功後にローカルファイルを削除
     final file = File(localFilePath);
     if (await file.exists()) {
       await file.delete();
     }
+    print("アップロードが完了し、ローカルファイルが削除されました。");
+  } catch (e) {
+    print("アップロードに失敗しました: $e");
+    throw Exception("アップロードエラー: $e");
   }
+}
 }
