@@ -24,11 +24,24 @@ public class MainActivity extends FlutterActivity {
 
                         if (path != null) {
                             File file = new File(path);
-                            boolean success = file.setReadable(readable != null ? readable : true) &&
-                                              file.setWritable(writable != null ? writable : true) &&
-                                              file.setExecutable(executable != null ? executable : false);
 
-                            result.success(success);
+                            try {
+                                // chmodコマンドを実行
+                                String permissions = (readable ? "r" : "-") + 
+                                                     (writable ? "w" : "-") +
+                                                     (executable ? "x" : "-");
+                                String command = "chmod 644 " + file.getAbsolutePath();
+                                Process process = Runtime.getRuntime().exec(command);
+                                process.waitFor();
+
+                                if (process.exitValue() == 0) {
+                                    result.success(true); // 成功
+                                } else {
+                                    result.success(false); // 失敗
+                                }
+                            } catch (Exception e) {
+                                result.error("CHMOD_FAILED", "Failed to execute chmod: " + e.getMessage(), null);
+                            }
                         } else {
                             result.error("INVALID_PATH", "File path is null", null);
                         }
