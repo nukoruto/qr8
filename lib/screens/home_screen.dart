@@ -15,6 +15,7 @@ class HomeScreen extends StatelessWidget {
           children: [
             ElevatedButton(
               onPressed: () {
+                
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => QRScannerScreen()),

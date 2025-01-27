@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:qr8/utils/file_handler.dart';
 import '../main.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class FileListScreen extends StatefulWidget {
   final String folderName;
@@ -46,6 +47,11 @@ class _FileListScreenState extends State<FileListScreen> {
         children: [
           ElevatedButton(
             onPressed: () async {
+              if (await Permission.manageExternalStorage.request().isDenied) {
+  // ユーザーに権限を有効化してもらう
+  await openAppSettings();
+}
+
                if (excelFileName == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('エクセルファイルが見つかりません')),
@@ -69,29 +75,26 @@ class _FileListScreenState extends State<FileListScreen> {
             child: const Text("点検簿をダウンロード"),
           ),
           ElevatedButton(
-            onPressed: () async {
-              if (excelFileName == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('アップロードするファイルがありません')),
-                );
-                return;
-              }
+          onPressed: () async {
+  if (excelFileName == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('アップロードするファイルがありません')),
+    );
+    return;
+  }
 
-              final renamedFileName = excelFileName!.replaceAll('.xlsx', '_$today.xlsx');
-              final localPath = '/storage/emulated/0/Download/$renamedFileName';
+  try {
+    await FileHandler.uploadFile(widget.folderName);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('アップロードが完了しました')),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('アップロードに失敗しました: $e')),
+    );
+  }
+},
 
-
-              try {
-                await FileHandler.uploadFile(localPath, widget.folderName);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('アップロードが完了しました')),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('アップロードに失敗しました: $e')),
-                );
-              }
-            },
             child: const Text("点検簿を送信"),
           ),
           ElevatedButton(

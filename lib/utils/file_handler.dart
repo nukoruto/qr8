@@ -2,14 +2,10 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 class FileHandler {
-  static Future<Directory> getAppDirectory() async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory;
-  }
-
   // サーバーから指定されたフォルダ内の指定拡張子のファイル名を取得
   static Future<String?> fetchFileName(String folderName, String extension) async {
     final String listFilesUrl = "http://10.20.10.224:3002/files?dir=/$folderName";
@@ -21,17 +17,18 @@ class FileHandler {
 
     if (response.statusCode == 200) {
       List<dynamic> files = response.data;
-      String? fileName = files.firstWhere(
-          (file) => file.toString().endsWith(extension),
-          orElse: () => null);
-      return fileName;
+      return files.firstWhere(
+        (file) => file.toString().endsWith(extension),
+        orElse: () => null,
+      );
     } else {
       throw Exception('Failed to fetch files from server.');
     }
   }
 
-  // 指定したフォルダのファイルをダウンロードし、必要に応じてリネーム
-  static Future<void> downloadAndOpenFile(String folderName, String extension,
+  // 点検簿をダウンロードし、デフォルトアプリで開く
+  static Future<void> downloadAndOpenFile(
+      String folderName, String extension,
       {String? renamedFileName}) async {
     final String? fileName = await fetchFileName(folderName, extension);
     if (fileName == null) {
@@ -41,8 +38,10 @@ class FileHandler {
     final today = DateFormat('yyyyMMdd').format(DateTime.now());
     final String downloadUrl =
         "http://10.20.10.224:3002/file?filePath=$folderName/$fileName";
-    final Directory appDir = await getAppDirectory();
-    final String localPath = "${appDir.path}/" +
+
+    // ダウンロードフォルダへのパスを取得
+    final Directory downloadsDir = Directory('/storage/emulated/0/Download');
+    final String localPath = "${downloadsDir.path}/" +
         (renamedFileName ?? "${fileName.split('.').first}_$today.$extension");
 
     final Dio dio = Dio();
@@ -55,33 +54,34 @@ class FileHandler {
     }
   }
 
-  // 指定したローカルパスのファイルをサーバーにアップロード
-  static Future<void> uploadFile(String localFilePath, String parentFolder) async {
-    final String today = DateFormat('yyyyMMdd').format(DateTime.now());
-    final String uploadUrl = "http://10.20.10.224:3002/upload";
+  // 点検簿をアップロード
+  static Future<void> uploadFile(String folderName) async {
+    // ダウンロードフォルダからファイルを選択
+    final result = await FilePicker.platform.pickFiles(
+      initialDirectory: '/storage/emulated/0/Download',
+      type: FileType.custom,
+      allowedExtensions: ['xlsx'],
+    );
 
-    final String dailyFolderPath = "/$parentFolder/daily/$today";
-    final Uri parsedUri = Uri.tryParse(uploadUrl) ??
-        (throw ArgumentError('Invalid URL: $uploadUrl'));
+    if (result != null && result.files.single.path != null) {
+      final String localFilePath = result.files.single.path!;
+      final String uploadUrl = "http://10.20.10.224:3002/upload";
 
-    final Dio dio = Dio();
-    final formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(localFilePath),
-      'targetDir': dailyFolderPath,
-    });
+      final Dio dio = Dio();
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(localFilePath),
+        'targetDir': folderName,
+      });
 
-try {
-    await dio.post(uploadUrl, data: formData);
+      await dio.post(uploadUrl, data: formData);
 
-    // アップロード成功後にローカルファイルを削除
-    final file = File(localFilePath);
-    if (await file.exists()) {
-      await file.delete();
+      // アップロード成功後、ローカルファイルを削除
+      final file = File(localFilePath);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } else {
+      throw Exception("ファイル選択がキャンセルされました。");
     }
-    print("アップロードが完了し、ローカルファイルが削除されました。");
-  } catch (e) {
-    print("アップロードに失敗しました: $e");
-    throw Exception("アップロードエラー: $e");
   }
-}
 }
